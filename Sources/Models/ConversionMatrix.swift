@@ -52,6 +52,31 @@ public struct ConversionMatrix: Sendable {
             list.removeAll { $0 == norm }
             return list
 
+        case .vector:
+            var list = ["PDF", "PNG", "SVG", "SVGZ", "EPS", "EMF", "DXF"]
+            list.removeAll { $0 == normExt.uppercased() }
+            return list
+
+        case .cad:
+            var list = ["PDF", "SVG", "PNG", "DXF"]
+            list.removeAll { $0 == normExt.uppercased() }
+            return list
+
+        case .font:
+            var list = ["TTF", "OTF", "WOFF", "WOFF2"]
+            list.removeAll { $0 == normExt.uppercased() }
+            return list
+
+        case .model3D:
+            var list = ["PNG", "STL", "OBJ", "GLB"]
+            list.removeAll { $0 == normExt.uppercased() }
+            return list
+
+        case .geo:
+            var list = ["GEOJSON", "KML", "KMZ", "GPX", "CSV", "JSON"]
+            list.removeAll { $0 == normExt.uppercased() }
+            return list
+
         case .generic:
             return ["PDF", "ZIP", "TXT"]
         }

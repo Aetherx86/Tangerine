@@ -13,6 +13,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate 
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        NSApplication.shared.servicesProvider = self
+        NSUpdateDynamicServices()
 
         setupStatusItem()
         EventMonitor.shared.start()
@@ -41,6 +43,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate 
         let dropZoneItem = NSMenuItem(title: "Open Drop Zone / Simulator…", action: #selector(openDropZone), keyEquivalent: "d")
         dropZoneItem.target = self
         menu.addItem(dropZoneItem)
+
+        let convertFinderItem = NSMenuItem(title: "Convert Finder Selection", action: #selector(convertFinderSelection), keyEquivalent: "c")
+        convertFinderItem.keyEquivalentModifierMask = [.command, .option]
+        convertFinderItem.target = self
+        menu.addItem(convertFinderItem)
 
         let summonMenu = NSMenuItem(title: "Summon Wheel at Cursor", action: nil, keyEquivalent: "")
         let subMenu = NSMenu()
@@ -128,6 +135,30 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate 
         } else {
             manager.showShelf()
         }
+    }
+
+    @objc private func convertFinderSelection() {
+        let urls = EventMonitor.shared.getFinderSelection()
+        guard !urls.isEmpty else {
+            openDropZone()
+            return
+        }
+        let point = NSEvent.mouseLocation
+        RadialWheelController.shared.show(at: point, mode: .convert, urls: urls)
+    }
+
+    /// NSServices message handler: Finder context menu "Convert with Tangerine"
+    @objc public func convertFiles(_ pboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>?) {
+        var urls: [URL] = []
+        if let items = pboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] {
+            urls.append(contentsOf: items.filter { $0.isFileURL })
+        }
+        if urls.isEmpty, let paths = pboard.propertyList(forType: NSPasteboard.PasteboardType("NSFilenamesPboardType")) as? [String] {
+            urls.append(contentsOf: paths.map { URL(fileURLWithPath: $0) })
+        }
+        guard !urls.isEmpty else { return }
+        let point = NSEvent.mouseLocation
+        RadialWheelController.shared.show(at: point, mode: .convert, urls: urls)
     }
 
     @objc private func summonConvert() {

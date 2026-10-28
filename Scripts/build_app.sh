@@ -69,6 +69,25 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <true/>
     <key>NSAppleEventsUsageDescription</key>
     <string>Tangerine connects with Finder to streamline file actions.</string>
+    <key>NSServices</key>
+    <array>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert with Tangerine</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertFiles</string>
+            <key>NSPortName</key>
+            <string>Tangerine</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+                <string>public.item</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>
 EOF

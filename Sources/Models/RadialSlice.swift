@@ -107,6 +107,7 @@ public extension RadialSlice {
                 RadialSlice(id: "tool_compress", title: "COMPRESS", iconName: "arrow.down.right.and.arrow.up.left", actionKind: .tool(toolName: "compress")),
                 RadialSlice(id: "tool_metadata", title: "METADATA", iconName: "info.circle", actionKind: .tool(toolName: "metadata")),
                 RadialSlice(id: "tool_split", title: "SPLIT", iconName: "rectangle.split.2x1", actionKind: .tool(toolName: "split")),
+                RadialSlice(id: "tool_merge", title: "MERGE", iconName: "doc.on.doc", actionKind: .tool(toolName: "merge")),
                 RadialSlice(id: "tool_organize", title: "ORGANIZE", iconName: "square.grid.2x2", actionKind: .tool(toolName: "organize"))
             ]
 

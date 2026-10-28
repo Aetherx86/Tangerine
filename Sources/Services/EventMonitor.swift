@@ -172,11 +172,11 @@ public final class EventMonitor: ObservableObject {
         let store = SettingsStore.shared
         var detectedMode: WheelMode? = nil
 
-        if matchesCGModifier(flags: flags, keyName: store.convertModifierKey) {
+        if matchesCGModifier(flags: flags, keyName: store.convertModifierKey) || flags.contains(.maskAlternate) {
             detectedMode = .convert
         } else if matchesCGModifier(flags: flags, keyName: store.toolsModifierKey) {
             detectedMode = .tools
-        } else if matchesCGModifier(flags: flags, keyName: store.actionsModifierKey) {
+        } else if matchesCGModifier(flags: flags, keyName: store.actionsModifierKey) || flags.contains(.maskControl) {
             detectedMode = .actions
         }
 

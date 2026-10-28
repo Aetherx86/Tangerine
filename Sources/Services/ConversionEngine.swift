@@ -149,6 +149,16 @@ public struct ConversionEngine: Sendable {
                         outputs = []
                     }
 
+                case "merge":
+                    if category == .pdf || category == .image {
+                        outputs = try await PDFProcessor.merge(urls: urls)
+                    } else {
+                        outputs = []
+                    }
+
+                case "trim":
+                    outputs = try await MediaProcessor.trim(urls: urls, startTime: 0, endTime: 10)
+
                 case "extract":
                     outputs = try await ArchiveProcessor.extract(urls: urls)
 

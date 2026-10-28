@@ -16,11 +16,17 @@ func printHelp() {
       formats                            List all supported categories and formats
       help                               Show this help message
     
+    OPTIONS:
+      --quality <1-100>                  Image compression quality (e.g. --quality 80)
+      --dpi <72|150|300>                 PDF rasterization resolution DPI
+      -o, --output <dir>                 Output directory for converted files
+      --move-originals                   Move source files into .original subfolder when watching
+    
     EXAMPLES:
-      tangerine convert photo.heic --to jpg
-      tangerine convert doc.pdf --to png
+      tangerine convert photo.heic --to jpg --quality 85
+      tangerine convert doc.pdf --to png --dpi 300 -o ~/Desktop
       tangerine convert video.mov --to mp4
-      tangerine watch ~/Downloads/Incoming --to pdf
+      tangerine watch ~/Downloads/Incoming --to pdf --move-originals
     """)
 }
 
@@ -44,10 +50,38 @@ func runConvert(args: [String]) async {
     let targetExt = args[toIndex + 1].lowercased()
     var filePaths: [String] = []
 
-    for (idx, arg) in args.enumerated() {
-        if idx == 0 { continue } // "convert"
-        if idx == toIndex || idx == toIndex + 1 { continue }
-        filePaths.append(arg)
+    var i = 1
+    while i < args.count {
+        let arg = args[i]
+        if arg == "--to" {
+            i += 2
+            continue
+        }
+        if arg == "--quality", i + 1 < args.count {
+            if let q = Double(args[i + 1]) {
+                SettingsStore.shared.jpegQuality = max(0.1, min(1.0, q / 100.0))
+            }
+            i += 2
+            continue
+        }
+        if arg == "--dpi", i + 1 < args.count {
+            if let dpi = Double(args[i + 1]) {
+                SettingsStore.shared.pdfDPI = dpi
+            }
+            i += 2
+            continue
+        }
+        if (arg == "-o" || arg == "--output"), i + 1 < args.count {
+            let outDir = (args[i + 1] as NSString).expandingTildeInPath
+            SettingsStore.shared.customOutputDirectory = outDir
+            SettingsStore.shared.saveBesideOriginal = false
+            i += 2
+            continue
+        }
+        if !arg.hasPrefix("-") {
+            filePaths.append(arg)
+        }
+        i += 1
     }
 
     guard !filePaths.isEmpty else {
@@ -55,7 +89,7 @@ func runConvert(args: [String]) async {
         exit(1)
     }
 
-    let urls = filePaths.map { URL(fileURLWithPath: $0) }
+    let urls = filePaths.map { URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath) }
     let category = FileCategory.detect(from: urls)
 
     let slice = RadialSlice(
@@ -77,7 +111,28 @@ func runWatch(args: [String]) {
     }
 
     let targetFormat = args[toIndex + 1].uppercased()
-    guard let folderPath = args.dropFirst().first(where: { $0 != "--to" && $0 != args[toIndex + 1] }) else {
+    let moveOriginals = args.contains("--move-originals")
+
+    var folderPath: String? = nil
+    var i = 1
+    while i < args.count {
+        let arg = args[i]
+        if arg == "--to" {
+            i += 2
+            continue
+        }
+        if arg == "--move-originals" {
+            i += 1
+            continue
+        }
+        if !arg.hasPrefix("-") {
+            folderPath = arg
+            break
+        }
+        i += 1
+    }
+
+    guard let folderPath = folderPath else {
         print("❌ Error: Missing folder path.")
         exit(1)
     }
@@ -88,8 +143,8 @@ func runWatch(args: [String]) {
         exit(1)
     }
 
-    print("🍊 Watching folder: \(folderURL.path) → \(targetFormat)")
-    FolderWatcherService.shared.addRule(folderURL: folderURL, targetFormat: targetFormat)
+    print("🍊 Watching folder: \(folderURL.path) → \(targetFormat) (Move originals: \(moveOriginals))")
+    FolderWatcherService.shared.addRule(folderURL: folderURL, targetFormat: targetFormat, moveOriginals: moveOriginals)
     FolderWatcherService.shared.start()
 
     print("Press Ctrl+C to stop watching.")
