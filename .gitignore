@@ -24,3 +24,4 @@ Tangerine.app/
 # Local user configs
 *.xcuserstate
 xcuserdata/
+*.dmg
