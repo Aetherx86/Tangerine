@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode and Swift PM
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj
+*.xcworkspace
+.swiftpm/
+
+# Build artifacts
+Tangerine.app/
+*.o
+*.d
+*.dia
+*.swiftdeps
+*.swiftmodule
+
+# Local user configs
+*.xcuserstate
+xcuserdata/

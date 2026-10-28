@@ -1,0 +1,66 @@
+# Tangerine for macOS - GitLab CI/CD Pipeline
+stages:
+  - validate
+  - test
+  - package
+
+variables:
+  APP_NAME: "Tangerine"
+  BUNDLE_ID: "com.tangerine.app"
+
+# 1. Project & Resource Verification
+validate_structure:
+  stage: validate
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache bash file
+  script:
+    - echo "Validating Tangerine project files and resources..."
+    - test -f Package.swift || (echo "Missing Package.swift" && exit 1)
+    - test -f Scripts/build_app.sh || (echo "Missing build_app.sh" && exit 1)
+    - test -d Sources/Models || (echo "Missing Models" && exit 1)
+    - test -d Sources/Services || (echo "Missing Services" && exit 1)
+    - test -d Sources/UI || (echo "Missing UI" && exit 1)
+    - test -d Resources/ExifTool || (echo "Missing ExifTool resources" && exit 1)
+    - test -d Resources/Tools || (echo "Missing Tools binaries" && exit 1)
+    - test -f Resources/AppIcon.icns || (echo "Missing AppIcon.icns" && exit 1)
+    - echo "All project structure and resource requirements verified."
+
+# 2. Business Logic, Conversion Legality & Architecture Tests
+verify_logic:
+  stage: test
+  image: python:3.11-alpine
+  script:
+    - python3 Scripts/verify_pipeline.py
+    - echo "All conversion matrices, resource integrity, and constraints verified."
+
+# 3. macOS Native Swift Build (Executes if macOS Runner is attached; non-blocking)
+macos_native_build:
+  stage: test
+  tags:
+    - saas-macos-medium-m1
+  rules:
+    - if: '$CI_RUNNER_TAGS =~ /macos/'
+      allow_failure: true
+    - when: manual
+      allow_failure: true
+  script:
+    - swift test
+    - ./Scripts/build_app.sh
+
+# 4. Release Distribution Packaging
+package_release:
+  stage: package
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache tar zip
+  script:
+    - echo "Packaging Tangerine release distribution bundle..."
+    - tar -czf Tangerine-Source.tar.gz Sources Resources Scripts Tests Showcase Package.swift README.md
+  artifacts:
+    name: "Tangerine-Release-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - Tangerine-Source.tar.gz
+    expire_in: 30 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
