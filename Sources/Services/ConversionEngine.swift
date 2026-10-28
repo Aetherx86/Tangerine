@@ -49,10 +49,23 @@ public struct ConversionEngine: Sendable {
 
                 await MainActor.run {
                     ProgressHUDManager.shared.finishJob(outputURLs: outputs)
+                    ConversionHistoryManager.shared.record(
+                        sources: urls,
+                        outputs: outputs,
+                        format: targetExt,
+                        success: true
+                    )
                 }
             } catch {
                 await MainActor.run {
                     ProgressHUDManager.shared.failJob(error: error.localizedDescription)
+                    ConversionHistoryManager.shared.record(
+                        sources: urls,
+                        outputs: [],
+                        format: targetExt,
+                        success: false,
+                        error: error.localizedDescription
+                    )
                 }
             }
 
@@ -145,10 +158,23 @@ public struct ConversionEngine: Sendable {
 
                 await MainActor.run {
                     ProgressHUDManager.shared.finishJob(outputURLs: outputs)
+                    ConversionHistoryManager.shared.record(
+                        sources: urls,
+                        outputs: outputs,
+                        format: toolName,
+                        success: true
+                    )
                 }
             } catch {
                 await MainActor.run {
                     ProgressHUDManager.shared.failJob(error: error.localizedDescription)
+                    ConversionHistoryManager.shared.record(
+                        sources: urls,
+                        outputs: [],
+                        format: toolName,
+                        success: false,
+                        error: error.localizedDescription
+                    )
                 }
             }
 

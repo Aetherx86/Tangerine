@@ -2,13 +2,42 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 public struct DropZoneView: View {
+    @ObservedObject private var history = ConversionHistoryManager.shared
+    @State private var selectedTab: Int = 0 // 0: Donut Simulator, 1: Recent Conversions
     @State private var selectedMode: WheelMode = .convert
     @State private var droppedURLs: [URL] = []
     @State private var hoveredIndex: Int? = nil
     @State private var isTargeted: Bool = false
 
+    public init() {}
+
     public var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
+            // Top Section Switcher (Home / Recent Conversions)
+            Picker("", selection: $selectedTab) {
+                Text("Donut Simulator").tag(0)
+                Text("Recent Conversions (\(history.items.count))").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            Divider()
+
+            if selectedTab == 0 {
+                simulatorView
+            } else {
+                recentConversionsView
+            }
+        }
+        .frame(width: 520, height: 560)
+        .background(.regularMaterial)
+    }
+
+    @ViewBuilder
+    private var simulatorView: some View {
+        VStack(spacing: 14) {
             // Mode selector
             Picker("Mode", selection: $selectedMode) {
                 Text("⇧ Convert Formats").tag(WheelMode.convert)
@@ -17,7 +46,7 @@ public struct DropZoneView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 360)
-            .padding(.top, 16)
+            .padding(.top, 8)
 
             // Dropped file indicator banner
             if !droppedURLs.isEmpty {
@@ -51,7 +80,7 @@ public struct DropZoneView: View {
                     slices: slices,
                     hoveredIndex: hoveredIndex,
                     centerText: droppedURLs.isEmpty ? "Drop Here" : "\(droppedURLs.count) file",
-                    subtitleText: selectedMode == .convert ? "Convert formats" : (selectedMode == .tools ? "File tools" : "File actions"),
+                    subtitleText: selectedMode == .convert ? "Convert formats (Press Tab to flip)" : (selectedMode == .tools ? "File tools" : "File actions"),
                     onSelectSlice: { slice in
                         if !droppedURLs.isEmpty {
                             Task {
@@ -78,15 +107,116 @@ public struct DropZoneView: View {
             Spacer()
 
             // Bottom guide matching mockup 5 caption
-            Text("Start dragging, then tap a key. The wheel stays open until you drop. Change the keys in Settings.")
+            Text("Hold a key (Shift, Command, Control), drag files and drop on a format. Press Tab to flip sides.")
                 .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(Color.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 30)
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
         }
-        .frame(width: 480, height: 520)
-        .background(.regularMaterial)
+    }
+
+    @ViewBuilder
+    private var recentConversionsView: some View {
+        VStack(spacing: 0) {
+            if history.items.isEmpty {
+                VStack(spacing: 12) {
+                    Spacer()
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 40))
+                        .foregroundStyle(Color.secondary.opacity(0.5))
+                    Text("No conversions yet")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.secondary)
+                    Text("Drag files over the radial wheel to convert them.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.secondary.opacity(0.8))
+                    Spacer()
+                }
+            } else {
+                HStack {
+                    Text("Past Conversions")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.secondary)
+                    Spacer()
+                    Button("Clear History") {
+                        history.clearAll()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.red.opacity(0.8))
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+                List {
+                    ForEach(history.items) { item in
+                        HStack(spacing: 12) {
+                            // Icon
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(item.isSuccess ? Color.orange.opacity(0.15) : Color.red.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Text(item.targetFormat.uppercased())
+                                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                                    .foregroundStyle(item.isSuccess ? Color.orange : Color.red)
+                            }
+
+                            // Details
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .lineLimit(1)
+                                if let out = item.outputPaths.first {
+                                    Text(URL(fileURLWithPath: out).path)
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(Color.secondary)
+                                        .lineLimit(1)
+                                }
+                            }
+
+                            Spacer()
+
+                            // Action Buttons (Open, Reveal, Undo)
+                            if item.isSuccess && !item.isUndone {
+                                Button("Open") {
+                                    if let first = item.outputPaths.first {
+                                        NSWorkspace.shared.open(URL(fileURLWithPath: first))
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+
+                                Button(action: {
+                                    let urls = item.outputPaths.map { URL(fileURLWithPath: $0) }
+                                    NSWorkspace.shared.activateFileViewerSelecting(urls)
+                                }) {
+                                    Image(systemName: "folder")
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .help("Reveal in Finder")
+
+                                Button("Undo") {
+                                    history.undo(item: item)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .tint(Color.red)
+                                .help("Move converted file(s) to Trash")
+                            } else if item.isUndone {
+                                Text("Trashed")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundStyle(Color.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
     }
 
     private func updateHover(location: CGPoint, count: Int) {

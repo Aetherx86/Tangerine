@@ -42,7 +42,7 @@ package_release:
     - apk add --no-cache tar zip
   script:
     - echo "Packaging Tangerine release distribution bundle..."
-    - tar -czf Tangerine-Source.tar.gz Sources Resources Scripts Tests Showcase Package.swift README.md
+    - tar -czf Tangerine-Source.tar.gz Sources Resources Scripts Tests Showcase Cli Package.swift README.md
   artifacts:
     name: "Tangerine-Release-$CI_COMMIT_SHORT_SHA"
     paths:

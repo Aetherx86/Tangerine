@@ -20,23 +20,23 @@ public enum FileCategory: String, CaseIterable, Sendable {
         
         // Exact extension checks
         switch ext {
-        case "jpg", "jpeg", "png", "webp", "heic", "heif", "tiff", "tif", "bmp", "avif", "gif", "svg":
+        case "jpg", "jpeg", "png", "webp", "heic", "heif", "tiff", "tif", "bmp", "avif", "gif", "svg", "ico", "icns", "psd", "dng", "cr2", "nef", "arw":
             return .image
-        case "mp4", "mov", "mkv", "avi", "wmv", "webm", "m4v":
+        case "mp4", "mov", "mkv", "avi", "wmv", "webm", "m4v", "flv", "ts", "3gp":
             return .video
-        case "mp3", "m4a", "wav", "flac", "ogg", "opus", "aiff", "aif", "wma":
+        case "mp3", "m4a", "wav", "flac", "ogg", "opus", "aiff", "aif", "wma", "aac", "alac":
             return .audio
         case "pdf":
             return .pdf
         case "epub":
             return .epub
-        case "docx", "doc", "pages", "txt", "md", "markdown", "rtf", "rtfd":
+        case "docx", "doc", "pages", "txt", "md", "markdown", "rtf", "rtfd", "hwp", "hwpx", "html", "htm":
             return .document
-        case "xlsx", "xls", "ods", "csv", "tsv":
+        case "xlsx", "xls", "ods", "csv", "tsv", "json", "yaml", "yml", "xml":
             return .spreadsheet
         case "pptx", "ppt", "key", "keynote":
             return .presentation
-        case "srt", "vtt":
+        case "srt", "vtt", "ass", "ssa", "smi":
             return .subtitle
         case "zip", "tar", "gz", "tgz", "bz2", "rar", "7z":
             return .archive

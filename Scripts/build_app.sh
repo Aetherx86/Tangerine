@@ -19,10 +19,20 @@ mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
 # Copy executable
-if [ -f ".build/release/TangerineApp" ]; then
+if [ -f ".build/out/Products/Release/Tangerine" ]; then
+    cp ".build/out/Products/Release/Tangerine" "$MACOS_DIR/Tangerine"
+elif [ -f ".build/release/TangerineApp" ]; then
     cp ".build/release/TangerineApp" "$MACOS_DIR/Tangerine"
-else
+elif [ -f ".build/release/Tangerine" ]; then
     cp ".build/release/Tangerine" "$MACOS_DIR/Tangerine"
+fi
+
+if [ -f ".build/out/Products/Release/tangerine-cli" ]; then
+    cp ".build/out/Products/Release/tangerine-cli" "$MACOS_DIR/tangerine-cli"
+    chmod +x "$MACOS_DIR/tangerine-cli"
+elif [ -f ".build/release/tangerine-cli" ]; then
+    cp ".build/release/tangerine-cli" "$MACOS_DIR/tangerine-cli"
+    chmod +x "$MACOS_DIR/tangerine-cli"
 fi
 
 # Copy Info.plist
@@ -77,4 +87,8 @@ ls -ld "$APP_NAME"
 echo "🚀 Installing / updating /Applications/Tangerine.app..."
 rm -rf /Applications/Tangerine.app
 cp -R "$APP_NAME" /Applications/Tangerine.app
+
+mkdir -p "$HOME/.local/bin"
+ln -sf "/Applications/Tangerine.app/Contents/MacOS/tangerine-cli" "$HOME/.local/bin/tangerine" 2>/dev/null || true
+
 echo "✅ /Applications/Tangerine.app is up to date!"

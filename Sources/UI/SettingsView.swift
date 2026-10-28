@@ -22,12 +22,17 @@ public struct SettingsView: View {
                     Label("Formats & Quality", systemImage: "slider.horizontal.3")
                 }
 
+            watchFoldersTab
+                .tabItem {
+                    Label("Watch Folders", systemImage: "folder.badge.gearshape")
+                }
+
             permissionsTab
                 .tabItem {
                     Label("Permissions", systemImage: "hand.raised")
                 }
         }
-        .frame(width: 480, height: 340)
+        .frame(width: 520, height: 380)
         .padding(20)
         .onAppear {
             checkPermissions()
@@ -114,6 +119,94 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var watchFoldersTab: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("Automatically convert files that land in watched folders.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.secondary)
+                Spacer()
+                Button("+ Add Folder…") {
+                    pickWatchFolder()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .tint(Color.orange)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+
+            if store.watchRules.isEmpty {
+                VStack(spacing: 8) {
+                    Spacer()
+                    Image(systemName: "folder.badge.plus")
+                        .font(.system(size: 32))
+                        .foregroundStyle(Color.secondary.opacity(0.4))
+                    Text("No Watch Folders Added")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.secondary)
+                    Text("Drop or choose a folder to automatically convert any new file.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.secondary.opacity(0.8))
+                    Spacer()
+                }
+            } else {
+                List {
+                    ForEach(store.watchRules) { rule in
+                        HStack(spacing: 10) {
+                            Image(systemName: "folder.fill")
+                                .foregroundStyle(Color.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(URL(fileURLWithPath: rule.folderPath).lastPathComponent)
+                                    .font(.system(size: 12, weight: .semibold))
+                                Text(rule.folderPath)
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Color.secondary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Text("→ \(rule.targetFormat.uppercased())")
+                                .font(.system(size: 11, weight: .bold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.orange.opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                            Toggle("", isOn: Binding(
+                                get: { rule.isEnabled },
+                                set: { _ in FolderWatcherService.shared.toggleRule(id: rule.id) }
+                            ))
+                            .labelsHidden()
+
+                            Button(action: {
+                                FolderWatcherService.shared.removeRule(id: rule.id)
+                            }) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Color.red.opacity(0.8))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+    }
+
+    private func pickWatchFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Watch Folder"
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                FolderWatcherService.shared.addRule(folderURL: url, targetFormat: "PNG")
+            }
+        }
     }
 
     private var permissionsTab: some View {

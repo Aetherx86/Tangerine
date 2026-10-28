@@ -16,6 +16,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate 
 
         setupStatusItem()
         EventMonitor.shared.start()
+        FolderWatcherService.shared.start()
     }
 
     func setupStatusItem() {

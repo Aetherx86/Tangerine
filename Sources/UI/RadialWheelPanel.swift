@@ -15,13 +15,39 @@ public final class RadialWheelController: ObservableObject {
     @Published public var currentCategory: FileCategory = .image
     @Published public var currentURLs: [URL] = []
     @Published public var currentMode: WheelMode = .convert
+    @Published public var currentSide: Int = 1
 
     private var panel: RadialWheelPanel?
 
     private init() {}
 
+    public func flipSide() {
+        SoundManager.shared.playHoverTick()
+        if currentSide == 1 {
+            currentSide = 2
+            let ext = currentURLs.first?.pathExtension ?? ""
+            if currentMode == .convert {
+                self.slices = RadialSlice.slices(for: currentCategory, mode: .tools, currentExtension: ext)
+                self.subtitleText = "Side 2: File Tools (Tab / Scroll to flip)"
+            } else if currentMode == .tools {
+                self.slices = RadialSlice.slices(for: currentCategory, mode: .actions, currentExtension: ext)
+                self.subtitleText = "Side 2: File Actions (Tab / Scroll to flip)"
+            } else {
+                self.slices = RadialSlice.slices(for: currentCategory, mode: .convert, currentExtension: ext)
+                self.subtitleText = "Side 2: Formats (Tab / Scroll to flip)"
+            }
+        } else {
+            currentSide = 1
+            let ext = currentURLs.first?.pathExtension ?? ""
+            self.slices = RadialSlice.slices(for: currentCategory, mode: currentMode, currentExtension: ext)
+            self.subtitleText = "Side 1: Primary (Tab / Scroll to flip)"
+        }
+        self.hoveredIndex = nil
+    }
+
     public func show(at screenPoint: NSPoint, mode: WheelMode, urls: [URL] = []) {
         self.currentMode = mode
+        self.currentSide = 1
         self.currentURLs = urls
         self.currentCategory = FileCategory.detect(from: urls)
 
@@ -141,6 +167,12 @@ public final class RadialDropDestinationView: NSView {
     // Intercept hit test so this view directly receives all drag tracking callbacks
     public override func hitTest(_ point: NSPoint) -> NSView? {
         return self
+    }
+
+    public override func scrollWheel(with event: NSEvent) {
+        if abs(event.deltaY) > 1.5 || abs(event.deltaX) > 1.5 {
+            controller.flipSide()
+        }
     }
 
     public override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {

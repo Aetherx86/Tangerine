@@ -122,8 +122,15 @@ public final class EventMonitor: ObservableObject {
                 }
             }
 
-        case .flagsChanged, .keyDown:
-            // Check modifier trigger
+        case .keyDown:
+            if RadialWheelController.shared.isVisible {
+                // Tab key (48) or any key tap while wheel is active flips to Side 2
+                RadialWheelController.shared.flipSide()
+                return
+            }
+            checkModifierTrigger(flags: flags)
+
+        case .flagsChanged:
             checkModifierTrigger(flags: flags)
 
         default:
@@ -210,13 +217,18 @@ public final class EventMonitor: ObservableObject {
             return []
         }
 
-        // Strict verification: The drag pasteboard MUST contain file types.
-        // If it only contains plain text, RTF, HTML, etc., it is a text drag/selection!
+        // Strict verification: The drag pasteboard MUST contain file types or web browser drops.
+        // If it only contains plain text, RTF, HTML without files, it is a text drag/selection!
         let fileTypeIdentifiers: Set<String> = [
             "public.file-url",
             "NSFilenamesPboardType",
             "com.apple.finder.node",
-            NSPasteboard.PasteboardType.fileURL.rawValue
+            NSPasteboard.PasteboardType.fileURL.rawValue,
+            "public.png",
+            "public.jpeg",
+            "public.tiff",
+            "org.webmproject.webp",
+            "com.apple.pasteboard.promised-file-url"
         ]
 
         let containsFileType = types.contains { t in
@@ -235,6 +247,11 @@ public final class EventMonitor: ObservableObject {
 
         if urls.isEmpty, let paths = dragPb.propertyList(forType: NSPasteboard.PasteboardType("NSFilenamesPboardType")) as? [String] {
             urls.append(contentsOf: paths.map { URL(fileURLWithPath: $0) }.filter { FileManager.default.fileExists(atPath: $0.path) })
+        }
+
+        // Check browser direct drops (Safari, Chrome, Firefox)
+        if urls.isEmpty {
+            urls = WebDragHandler.extractWebDrop(from: dragPb)
         }
 
         return urls

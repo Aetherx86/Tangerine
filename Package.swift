@@ -8,6 +8,7 @@ let package = Package(
     ],
     products: [
         .executable(name: "Tangerine", targets: ["TangerineApp"]),
+        .executable(name: "tangerine-cli", targets: ["TangerineCLI"]),
         .library(name: "TangerineKit", targets: ["TangerineKit"]),
         .executable(name: "ShowcaseGenerator", targets: ["ShowcaseGenerator"])
     ],
@@ -20,6 +21,11 @@ let package = Package(
             name: "TangerineApp",
             dependencies: ["TangerineKit"],
             path: "App"
+        ),
+        .executableTarget(
+            name: "TangerineCLI",
+            dependencies: ["TangerineKit"],
+            path: "Cli"
         ),
         .executableTarget(
             name: "ShowcaseGenerator",

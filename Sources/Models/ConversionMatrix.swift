@@ -5,7 +5,7 @@ public struct ConversionMatrix: Sendable {
         let normExt = ext.lowercased()
         switch category {
         case .image:
-            var list = ["JPG", "PNG", "WEBP", "HEIC", "TIFF", "AVIF", "BMP", "PDF"]
+            var list = ["JPG", "PNG", "WEBP", "HEIC", "TIFF", "AVIF", "BMP", "PDF", "ICO", "ICNS"]
             let norm = (normExt == "jpeg" ? "jpg" : normExt).uppercased()
             list.removeAll { $0 == norm }
             return list
@@ -16,25 +16,25 @@ public struct ConversionMatrix: Sendable {
             return list
 
         case .audio:
-            var list = ["M4A", "WAV", "FLAC", "OGG", "OPUS", "AIFF", "WMA", "MP3"]
+            var list = ["M4A", "WAV", "FLAC", "OGG", "OPUS", "AIFF", "WMA", "MP3", "AAC"]
             list.removeAll { $0 == normExt.uppercased() }
             return list
 
         case .pdf:
-            return ["DOCX", "PAGES", "PPTX", "XLSX", "JPG", "PNG", "EPUB", "TXT", "MD"]
+            return ["DOCX", "PAGES", "PPTX", "XLSX", "JPG", "PNG", "EPUB", "TXT", "MD", "HWPX"]
 
         case .document:
             // Strictly NO JPG/PNG for documents!
-            var list = ["PAGES", "PDF", "TXT", "MD", "HTML", "EPUB", "DOCX"]
+            var list = ["PAGES", "PDF", "TXT", "MD", "HTML", "EPUB", "DOCX", "HWPX"]
             let norm = (normExt == "markdown" ? "md" : normExt).uppercased()
             list.removeAll { $0 == norm }
             return list
 
         case .epub:
-            return ["PDF", "DOCX", "PAGES", "TXT", "MD", "HTML"]
+            return ["PDF", "DOCX", "PAGES", "TXT", "MD", "HTML", "HWPX"]
 
         case .spreadsheet:
-            var list = ["ODS", "PDF", "TSV", "CSV", "XLSX"]
+            var list = ["ODS", "PDF", "TSV", "CSV", "XLSX", "JSON"]
             list.removeAll { $0 == normExt.uppercased() }
             return list
 
@@ -42,12 +42,12 @@ public struct ConversionMatrix: Sendable {
             return ["PDF", "JPG", "PNG"]
 
         case .subtitle:
-            var list = ["VTT", "TXT", "SRT"]
+            var list = ["VTT", "TXT", "SRT", "ASS"]
             list.removeAll { $0 == normExt.uppercased() }
             return list
 
         case .archive:
-            var list = ["TAR", "GZIP", "ZIP"]
+            var list = ["TAR", "GZIP", "ZIP", "7Z"]
             let norm = (normExt == "gz" || normExt == "tgz" ? "gzip" : normExt).uppercased()
             list.removeAll { $0 == norm }
             return list

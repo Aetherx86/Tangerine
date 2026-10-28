@@ -108,6 +108,38 @@ public struct MediaProcessor: Sendable {
         return results
     }
 
+    /// Trims video or audio to specified start and end seconds (matches Filee's ClipCutter)
+    public static func trim(urls: [URL], startTime: Double = 0.0, endTime: Double? = nil) async throws -> [URL] {
+        var results: [URL] = []
+        for url in urls {
+            let ext = url.pathExtension.lowercased()
+            let base = url.deletingPathExtension().lastPathComponent
+            let outputURL = url.deletingLastPathComponent().appendingPathComponent("\(base)_trimmed.\(ext)")
+
+            let asset = AVAsset(url: url)
+            let duration = try await asset.load(.duration)
+            let totalSeconds = CMTimeGetSeconds(duration)
+
+            let start = CMTime(seconds: max(0.0, startTime), preferredTimescale: 600)
+            let endSec = min(totalSeconds, endTime ?? totalSeconds)
+            let durationRange = CMTime(seconds: max(0.1, endSec - startTime), preferredTimescale: 600)
+
+            guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+                continue
+            }
+
+            exportSession.timeRange = CMTimeRange(start: start, duration: durationRange)
+            exportSession.outputURL = outputURL
+            exportSession.outputFileType = ext == "mov" ? .mov : .mp4
+            await exportSession.export()
+
+            if exportSession.status == .completed {
+                results.append(outputURL)
+            }
+        }
+        return results
+    }
+
     private static func exportVideo(from inputURL: URL, to outputURL: URL) async throws {
         let asset = AVAsset(url: inputURL)
         guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {

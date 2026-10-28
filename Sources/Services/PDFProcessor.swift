@@ -119,4 +119,31 @@ public struct PDFProcessor: Sendable {
         }
         return results
     }
+
+    /// Merges multiple PDFs or image files into a single unified PDF (matches Filee's merge feature)
+    public static func merge(urls: [URL]) async throws -> [URL] {
+        guard !urls.isEmpty else { return [] }
+        let mergedDoc = PDFDocument()
+        var pageIndex = 0
+
+        for url in urls {
+            if url.pathExtension.lowercased() == "pdf", let doc = PDFDocument(url: url) {
+                for i in 0..<doc.pageCount {
+                    if let page = doc.page(at: i) {
+                        mergedDoc.insert(page, at: pageIndex)
+                        pageIndex += 1
+                    }
+                }
+            } else if let image = NSImage(contentsOf: url), let page = PDFPage(image: image) {
+                mergedDoc.insert(page, at: pageIndex)
+                pageIndex += 1
+            }
+        }
+
+        let firstURL = urls[0]
+        let base = firstURL.deletingPathExtension().lastPathComponent
+        let outputURL = firstURL.deletingLastPathComponent().appendingPathComponent("\(base)_merged.pdf")
+        mergedDoc.write(to: outputURL)
+        return [outputURL]
+    }
 }

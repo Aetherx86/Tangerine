@@ -25,6 +25,23 @@ public final class SettingsStore: ObservableObject {
     @AppStorage("customOutputDirectory") public var customOutputDirectory: String = ""
     @AppStorage("jpegQuality") public var jpegQuality: Double = 0.88
     @AppStorage("pdfDPI") public var pdfDPI: Double = 300.0
+    @AppStorage("watchRulesJSON") private var watchRulesJSON: String = "[]"
+
+    public var watchRules: [WatchRule] {
+        get {
+            guard let data = watchRulesJSON.data(using: .utf8),
+                  let rules = try? JSONDecoder().decode([WatchRule].self, from: data) else {
+                return []
+            }
+            return rules
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let json = String(data: data, encoding: .utf8) {
+                watchRulesJSON = json
+            }
+        }
+    }
 
     public var menuBarIconStyle: MenuBarIconStyle {
         get { MenuBarIconStyle(rawValue: menuBarIconStyleRaw) ?? .coloredTangerine }
