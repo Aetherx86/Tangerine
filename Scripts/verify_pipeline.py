@@ -12,7 +12,7 @@ def test_conversion_matrix():
         content = f.read()
 
     # Document must not contain JPG or PNG targets
-    doc_block = re.search(r'case \.document:(.*?)(case|\z)', content, re.DOTALL)
+    doc_block = re.search(r'case \.document:(.*?)(case|\Z)', content, re.DOTALL)
     assert doc_block, "Could not find case .document in ConversionMatrix.swift"
     doc_text = doc_block.group(1)
     assert '"JPG"' not in doc_text, "Document targets must not allow JPG"
@@ -20,7 +20,7 @@ def test_conversion_matrix():
     print("  ✓ Document conversion correctly blocks JPG/PNG")
 
     # Image targets must include PNG, WEBP, HEIC
-    img_block = re.search(r'case \.image:(.*?)(case|\z)', content, re.DOTALL)
+    img_block = re.search(r'case \.image:(.*?)(case|\Z)', content, re.DOTALL)
     assert img_block, "Could not find case .image in ConversionMatrix.swift"
     img_text = img_block.group(1)
     for fmt in ["PNG", "WEBP", "HEIC", "TIFF"]:

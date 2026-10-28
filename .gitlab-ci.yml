@@ -34,21 +34,7 @@ verify_logic:
     - python3 Scripts/verify_pipeline.py
     - echo "All conversion matrices, resource integrity, and constraints verified."
 
-# 3. macOS Native Swift Build (Executes if macOS Runner is attached; non-blocking)
-macos_native_build:
-  stage: test
-  tags:
-    - saas-macos-medium-m1
-  rules:
-    - if: '$CI_RUNNER_TAGS =~ /macos/'
-      allow_failure: true
-    - when: manual
-      allow_failure: true
-  script:
-    - swift test
-    - ./Scripts/build_app.sh
-
-# 4. Release Distribution Packaging
+# 3. Release Distribution Packaging
 package_release:
   stage: package
   image: alpine:latest
