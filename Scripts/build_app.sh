@@ -87,6 +87,8 @@ ls -ld "$APP_NAME"
 echo "🚀 Installing / updating /Applications/Tangerine.app..."
 rm -rf /Applications/Tangerine.app
 cp -R "$APP_NAME" /Applications/Tangerine.app
+rm -rf "$APP_NAME"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/Tangerine.app
 
 mkdir -p "$HOME/.local/bin"
 ln -sf "/Applications/Tangerine.app/Contents/MacOS/tangerine-cli" "$HOME/.local/bin/tangerine" 2>/dev/null || true
