@@ -58,11 +58,33 @@ public struct PDFProcessor: Sendable {
                 let outputURL = folder.appendingPathComponent("\(baseName).\(targetExt)")
                 try fullText.write(to: outputURL, atomically: true, encoding: .utf8)
                 results.append(outputURL)
-            } else {
-                // Other document formats: save text extraction or formatted export
+            } else if targetExt == "docx" || targetExt == "rtf" {
+                let fullText = (0..<document.pageCount).compactMap { document.page(at: $0)?.string }.joined(separator: "\n\n")
+                let attr = NSAttributedString(string: fullText, attributes: [
+                    .font: NSFont.systemFont(ofSize: 12),
+                    .foregroundColor: NSColor.black
+                ])
+                let docType: NSAttributedString.DocumentType = targetExt == "docx" ? .officeOpenXML : .rtf
                 let outputURL = folder.appendingPathComponent("\(baseName).\(targetExt)")
-                let str = document.string ?? ""
-                try str.write(to: outputURL, atomically: true, encoding: .utf8)
+                if let docData = try? attr.data(from: NSRange(location: 0, length: attr.length), documentAttributes: [.documentType: docType]) {
+                    try docData.write(to: outputURL)
+                    results.append(outputURL)
+                }
+            } else if targetExt == "html" {
+                var html = "<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>\(baseName)</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6;color:#333;}.page{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:30px;}h2{color:#FF6B00;border-bottom:1px solid #eee;padding-bottom:8px;}</style></head><body>\n"
+                for i in 0..<document.pageCount {
+                    if let page = document.page(at: i), let pageString = page.string {
+                        html += "<div class=\"page\"><h2>Page \(i + 1)</h2><p>\(pageString.replacingOccurrences(of: "\n", with: "<br/>"))</p></div>\n"
+                    }
+                }
+                html += "</body></html>"
+                let outputURL = folder.appendingPathComponent("\(baseName).html")
+                try html.write(to: outputURL, atomically: true, encoding: .utf8)
+                results.append(outputURL)
+            } else if targetExt == "epub" {
+                let fullText = (0..<document.pageCount).compactMap { document.page(at: $0)?.string }.joined(separator: "\n\n")
+                let outputURL = folder.appendingPathComponent("\(baseName).epub")
+                try DocumentProcessor.createEPUB(title: baseName, text: fullText, destinationURL: outputURL)
                 results.append(outputURL)
             }
         }

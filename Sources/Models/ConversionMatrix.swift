@@ -21,20 +21,20 @@ public struct ConversionMatrix: Sendable {
             return list
 
         case .pdf:
-            return ["DOCX", "PAGES", "PPTX", "XLSX", "JPG", "PNG", "EPUB", "TXT", "MD", "HWPX"]
+            return ["DOCX", "JPG", "PNG", "EPUB", "TXT", "MD", "HTML", "TIFF"]
 
         case .document:
-            // Strictly NO JPG/PNG for documents!
-            var list = ["PAGES", "PDF", "TXT", "MD", "HTML", "EPUB", "DOCX", "HWPX"]
+            // Strictly NO JPG/PNG for documents! Only genuine working targets.
+            var list = ["PDF", "DOCX", "HTML", "TXT", "MD", "EPUB", "RTF"]
             let norm = (normExt == "markdown" ? "md" : normExt).uppercased()
             list.removeAll { $0 == norm }
             return list
 
         case .epub:
-            return ["PDF", "DOCX", "PAGES", "TXT", "MD", "HTML", "HWPX"]
+            return ["PDF", "DOCX", "TXT", "MD", "HTML", "RTF"]
 
         case .spreadsheet:
-            var list = ["ODS", "PDF", "TSV", "CSV", "XLSX", "JSON"]
+            var list = ["CSV", "TSV", "JSON", "PDF"]
             list.removeAll { $0 == normExt.uppercased() }
             return list
 
@@ -42,12 +42,12 @@ public struct ConversionMatrix: Sendable {
             return ["PDF", "JPG", "PNG"]
 
         case .subtitle:
-            var list = ["VTT", "TXT", "SRT", "ASS"]
+            var list = ["VTT", "TXT", "SRT"]
             list.removeAll { $0 == normExt.uppercased() }
             return list
 
         case .archive:
-            var list = ["TAR", "GZIP", "ZIP", "7Z"]
+            var list = ["ZIP", "TAR", "GZIP"]
             let norm = (normExt == "gz" || normExt == "tgz" ? "gzip" : normExt).uppercased()
             list.removeAll { $0 == norm }
             return list

@@ -90,6 +90,16 @@ func runConvert(args: [String]) async {
     }
 
     let urls = filePaths.map { URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath) }
+
+    for url in urls {
+        let srcExt = url.pathExtension.lowercased()
+        if !ConversionMatrix.isValid(from: srcExt, to: targetExt) {
+            print("❌ Error: Cannot convert .\(srcExt) to .\(targetExt.lowercased()).")
+            print("   \(ConversionMatrix.supportedDescription(for: srcExt))")
+            exit(1)
+        }
+    }
+
     let category = FileCategory.detect(from: urls)
 
     let slice = RadialSlice(

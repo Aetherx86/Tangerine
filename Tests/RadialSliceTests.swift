@@ -56,8 +56,8 @@ final class RadialSliceTests: XCTestCase {
 
     func testPDFSlices() {
         let conv = RadialSlice.slices(for: .pdf, mode: .convert)
-        XCTAssertEqual(conv.count, 10)
-        XCTAssertEqual(conv.map { $0.title }, ["DOCX", "PAGES", "PPTX", "XLSX", "JPG", "PNG", "EPUB", "TXT", "MD", "HWPX"])
+        XCTAssertEqual(conv.count, 8)
+        XCTAssertEqual(conv.map { $0.title }, ["DOCX", "JPG", "PNG", "EPUB", "TXT", "MD", "HTML", "TIFF"])
 
         let tools = RadialSlice.slices(for: .pdf, mode: .tools)
         XCTAssertEqual(tools.count, 5)
@@ -66,8 +66,8 @@ final class RadialSliceTests: XCTestCase {
 
     func testArchiveSlices() {
         let conv = RadialSlice.slices(for: .archive, mode: .convert)
-        XCTAssertEqual(conv.count, 4)
-        XCTAssertEqual(conv.map { $0.title }, ["TAR", "GZIP", "ZIP", "7Z"])
+        XCTAssertEqual(conv.count, 3)
+        XCTAssertEqual(conv.map { $0.title }, ["ZIP", "TAR", "GZIP"])
 
         let tools = RadialSlice.slices(for: .archive, mode: .tools)
         XCTAssertEqual(tools.count, 1)

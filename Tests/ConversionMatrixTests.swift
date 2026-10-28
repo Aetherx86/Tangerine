@@ -59,13 +59,18 @@ final class ConversionMatrixTests: XCTestCase {
 
     func testValidPDFConversions() {
         XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "docx"))
-        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "pages"))
-        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "pptx"))
-        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "xlsx"))
+        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "epub"))
+        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "html"))
+        XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "tiff"))
         XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "jpg"))
         XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "png"))
         XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "txt"))
         XCTAssertTrue(ConversionMatrix.isValid(from: "pdf", to: "md"))
+
+        // Corrupted / unopenable conversions are strictly blocked
+        XCTAssertFalse(ConversionMatrix.isValid(from: "pdf", to: "pages"))
+        XCTAssertFalse(ConversionMatrix.isValid(from: "pdf", to: "pptx"))
+        XCTAssertFalse(ConversionMatrix.isValid(from: "pdf", to: "xlsx"))
     }
 
     func testRadialSlicesForMarkdownExcludesImages() {

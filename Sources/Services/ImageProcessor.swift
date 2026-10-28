@@ -155,6 +155,9 @@ public struct ImageProcessor: Sendable {
         case "tiff", "tif": utType = .tiff
         case "bmp": utType = .bmp
         case "avif": utType = UTType("public.avif") ?? .png
+        case "ico": utType = .ico
+        case "icns": utType = .icns
+        case "gif": utType = .gif
         default: utType = .png
         }
 

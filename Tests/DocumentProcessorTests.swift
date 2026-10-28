@@ -1,4 +1,5 @@
 import XCTest
+import PDFKit
 @testable import TangerineKit
 
 final class DocumentProcessorTests: XCTestCase {
@@ -75,5 +76,60 @@ final class DocumentProcessorTests: XCTestCase {
         let htmlContent = try String(contentsOf: htmlURL, encoding: .utf8)
         XCTAssertTrue(htmlContent.contains("<html>"))
         XCTAssertTrue(htmlContent.contains("Hello Tangerine"))
+    }
+
+    func testMarkdownToPDFProducesValidOpenablePDF() async throws {
+        let mdContent = """
+        # Tangerine Project Overview
+        
+        This document verifies that Markdown to PDF generates an authentic, openable PDF.
+        
+        ## Highlights
+        - Native macOS CoreText rendering
+        - Multi-page support with standard margins
+        - Fully searchable text
+        """
+        let mdURL = tempDir.appendingPathComponent("document.md")
+        try mdContent.write(to: mdURL, atomically: true, encoding: .utf8)
+
+        let results = try await DocumentProcessor.convert(urls: [mdURL], toExtension: "pdf")
+        XCTAssertEqual(results.count, 1)
+        let pdfURL = results[0]
+        XCTAssertTrue(FileManager.default.fileExists(atPath: pdfURL.path))
+
+        // Verify with Apple PDFKit that the file is an authentic, readable PDF
+        let pdfDoc = PDFDocument(url: pdfURL)
+        XCTAssertNotNil(pdfDoc, "Generated PDF must be successfully opened by PDFKit")
+        XCTAssertGreaterThanOrEqual(pdfDoc?.pageCount ?? 0, 1, "PDF must contain at least 1 page")
+        let text = pdfDoc?.string ?? ""
+        XCTAssertTrue(text.contains("Tangerine Project Overview"), "PDF must contain the rendered title")
+        XCTAssertTrue(text.contains("CoreText rendering"), "PDF must contain the body content")
+    }
+
+    func testMarkdownToDOCXProducesValidOfficeDocument() async throws {
+        let mdContent = "# OpenXML Document\nGenerated natively by Tangerine."
+        let mdURL = tempDir.appendingPathComponent("doc.md")
+        try mdContent.write(to: mdURL, atomically: true, encoding: .utf8)
+
+        let results = try await DocumentProcessor.convert(urls: [mdURL], toExtension: "docx")
+        XCTAssertEqual(results.count, 1)
+        let docxURL = results[0]
+        XCTAssertTrue(FileManager.default.fileExists(atPath: docxURL.path))
+
+        // Verify it can be read back as an NSAttributedString
+        let attr = try NSAttributedString(url: docxURL, options: [:], documentAttributes: nil)
+        XCTAssertTrue(attr.string.contains("OpenXML Document"))
+    }
+
+    func testMarkdownToEPUBProducesValidArchive() async throws {
+        let mdContent = "# Chapter 1\nOnce upon a time in California."
+        let mdURL = tempDir.appendingPathComponent("book.md")
+        try mdContent.write(to: mdURL, atomically: true, encoding: .utf8)
+
+        let results = try await DocumentProcessor.convert(urls: [mdURL], toExtension: "epub")
+        XCTAssertEqual(results.count, 1)
+        let epubURL = results[0]
+        XCTAssertTrue(FileManager.default.fileExists(atPath: epubURL.path))
+        XCTAssertGreaterThan(try Data(contentsOf: epubURL).count, 500)
     }
 }
