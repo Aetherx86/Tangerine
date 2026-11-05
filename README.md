@@ -1,10 +1,10 @@
-# 🍊 Tangerine for macOS
+#  Tangerine for macOS
 
 **Tangerine** converts and processes files right where you are in Finder—no extra windows, no web uploads, 100% private and on-device.
 
 ---
 
-## ✨ Features
+##  Features
 
 * **Instant Radial Wheel**: Hold a modifier key while dragging files in Finder to summon an interactive radial wheel around your mouse cursor.
   * **`⇧ Shift`**: **Format Conversions** (PNG, JPG, WebP, HEIC, AVIF, TIFF, PDF, MP4, MP3, ICO, ICNS, HWPX, AAC, 7Z, etc.)
@@ -23,7 +23,7 @@
 
 ---
 
-## 💻 Command-Line Interface (`tangerine`)
+##  Command-Line Interface (`tangerine`)
 
 Tangerine includes a fast, native CLI installed at `~/.local/bin/tangerine`:
 
@@ -42,7 +42,7 @@ tangerine formats
 
 ---
 
-## 🚀 Building & Running
+##  Building & Running
 
 ### Option 1: Run the bundled application
 ```bash
@@ -61,7 +61,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift run
 
 ---
 
-## 🔒 Permissions
+##  Permissions
 
 To enable global drag & modifier key monitoring while in Finder, grant **Accessibility** permission:
 1. Open **System Settings > Privacy & Security > Accessibility**.
